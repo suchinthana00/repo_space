@@ -7,14 +7,18 @@ def read_json_from_indices(file_path, start_index, end_index):
         # Initialize JSON parser
         parser = ijson.items(f, 'item')
         
-        # Skip items until reaching the start index
-        for _ in range(start_index):
-            next(parser, None)
+        # Progress bar for skipping items up to the start index
+        with tqdm(total=start_index, desc="Skipping to start index") as skip_bar:
+            for _ in range(start_index):
+                next(parser, None)
+                skip_bar.update(1)
 
-        # Collect items up to the end index or end of the file with tqdm progress bar
-        for i, item in tqdm(enumerate(parser, start=start_index), initial=start_index, total=end_index):
-            if i < end_index:
-                results.append(item)
-            else:
-                break
+        # Progress bar for collecting items within the specified range
+        with tqdm(total=end_index - start_index, desc="Reading items") as read_bar:
+            for i, item in enumerate(parser, start=start_index):
+                if i < end_index:
+                    results.append(item)
+                    read_bar.update(1)
+                else:
+                    break
     return results
